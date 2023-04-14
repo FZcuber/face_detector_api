@@ -45,19 +45,12 @@ app.post("/register", async (req, res) => {
   try {
     await db.transaction(async (trx) => {
       const loginEmail = await trx
-        .insert({
-          hash: hash,
-          email: email,
-        })
+        .insert({ hash: hash, email: email })
         .into("login")
         .returning("email");
-
-      const user = await trx("users").returning("*").insert({
-        email: loginEmail[0],
-        name: name,
-        joined: new Date(),
-      });
-
+      const user = await trx("users")
+        .returning("*")
+        .insert({ email: loginEmail[0].email, name: name, joined: new Date() });
       res.json(user[0]);
     });
   } catch (err) {
@@ -86,16 +79,12 @@ app.put("/image", async (req, res) => {
       .where("id", "=", id)
       .increment("entries", 1)
       .returning("entries");
-    res.json(entries[0]);
+    res.json(entries[0].entries);
   } catch (err) {
     res.status(400).json("unable to get entries");
   }
 });
 
-async function main() {
-  app.listen(3000, () => {
-    console.log("app is running on port 3000");
-  });
-}
-
-main();
+app.listen(3000, () => {
+  console.log("app is running on port 3000");
+});
